@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows.Forms;
 
-namespace ScintillaNET.Demo.Utils {
+namespace ScriptGenerator.Utils {
 	internal class HotKeyManager {
 
 		public static bool Enable = true;

@@ -30,10 +30,10 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.label1 = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
+            this.btnGenerate = new System.Windows.Forms.Button();
             this.txtCSVFileInput = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.button2 = new System.Windows.Forms.Button();
+            this.btnBrowse = new System.Windows.Forms.Button();
             this.gvCSVPreview = new System.Windows.Forms.DataGridView();
             this.label3 = new System.Windows.Forms.Label();
             this.TextPanel = new System.Windows.Forms.Panel();
@@ -42,8 +42,9 @@
             this.BtnPrevSearch = new System.Windows.Forms.Button();
             this.BtnCloseSearch = new System.Windows.Forms.Button();
             this.TxtSearch = new System.Windows.Forms.TextBox();
-            this.button3 = new System.Windows.Forms.Button();
-            this.button4 = new System.Windows.Forms.Button();
+            this.btnLoadTemplate = new System.Windows.Forms.Button();
+            this.btnSaveTemplate = new System.Windows.Forms.Button();
+            this.btnPreview = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.gvCSVPreview)).BeginInit();
             this.TextPanel.SuspendLayout();
             this.PanelSearch.SuspendLayout();
@@ -54,19 +55,19 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(22, 16);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(74, 13);
+            this.label1.Size = new System.Drawing.Size(50, 13);
             this.label1.TabIndex = 0;
-            this.label1.Text = "CSV File Input";
+            this.label1.Text = "File Input";
             // 
-            // button1
+            // btnGenerate
             // 
-            this.button1.Location = new System.Drawing.Point(499, 771);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 1;
-            this.button1.Text = "Generate & Save";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.btnGenerate.Location = new System.Drawing.Point(499, 771);
+            this.btnGenerate.Name = "btnGenerate";
+            this.btnGenerate.Size = new System.Drawing.Size(75, 23);
+            this.btnGenerate.TabIndex = 1;
+            this.btnGenerate.Text = "Generate & Save";
+            this.btnGenerate.UseVisualStyleBackColor = true;
+            this.btnGenerate.Click += new System.EventHandler(this.btnGenerate_Click);
             // 
             // txtCSVFileInput
             // 
@@ -84,18 +85,20 @@
             this.label2.TabIndex = 4;
             this.label2.Text = "Template";
             // 
-            // button2
+            // btnBrowse
             // 
-            this.button2.Location = new System.Drawing.Point(984, 10);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 5;
-            this.button2.Text = "Browse";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.btnBrowse.Location = new System.Drawing.Point(984, 10);
+            this.btnBrowse.Name = "btnBrowse";
+            this.btnBrowse.Size = new System.Drawing.Size(75, 23);
+            this.btnBrowse.TabIndex = 5;
+            this.btnBrowse.Text = "Browse";
+            this.btnBrowse.UseVisualStyleBackColor = true;
+            this.btnBrowse.Click += new System.EventHandler(this.btnBrowse_Click);
             // 
             // gvCSVPreview
             // 
+            this.gvCSVPreview.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.gvCSVPreview.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.gvCSVPreview.Location = new System.Drawing.Point(25, 78);
             this.gvCSVPreview.Name = "gvCSVPreview";
@@ -114,6 +117,8 @@
             // 
             // TextPanel
             // 
+            this.TextPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.TextPanel.Controls.Add(this.PanelSearch);
             this.TextPanel.Location = new System.Drawing.Point(25, 339);
             this.TextPanel.Name = "TextPanel";
@@ -189,44 +194,56 @@
             this.TxtSearch.Size = new System.Drawing.Size(189, 25);
             this.TxtSearch.TabIndex = 6;
             // 
-            // button3
+            // btnLoadTemplate
             // 
-            this.button3.Location = new System.Drawing.Point(984, 310);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(75, 23);
-            this.button3.TabIndex = 11;
-            this.button3.Text = "Load";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
+            this.btnLoadTemplate.Location = new System.Drawing.Point(984, 310);
+            this.btnLoadTemplate.Name = "btnLoadTemplate";
+            this.btnLoadTemplate.Size = new System.Drawing.Size(75, 23);
+            this.btnLoadTemplate.TabIndex = 11;
+            this.btnLoadTemplate.Text = "Load";
+            this.btnLoadTemplate.UseVisualStyleBackColor = true;
+            this.btnLoadTemplate.Click += new System.EventHandler(this.btnLoadTemplate_Click);
             // 
-            // button4
+            // btnSaveTemplate
             // 
-            this.button4.Location = new System.Drawing.Point(903, 310);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(75, 23);
-            this.button4.TabIndex = 12;
-            this.button4.Text = "Save";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.button4_Click);
+            this.btnSaveTemplate.Location = new System.Drawing.Point(903, 310);
+            this.btnSaveTemplate.Name = "btnSaveTemplate";
+            this.btnSaveTemplate.Size = new System.Drawing.Size(75, 23);
+            this.btnSaveTemplate.TabIndex = 12;
+            this.btnSaveTemplate.Text = "Save";
+            this.btnSaveTemplate.UseVisualStyleBackColor = true;
+            this.btnSaveTemplate.Click += new System.EventHandler(this.btnSaveTemplate_Click);
+            // 
+            // btnPreview
+            // 
+            this.btnPreview.Location = new System.Drawing.Point(418, 771);
+            this.btnPreview.Name = "btnPreview";
+            this.btnPreview.Size = new System.Drawing.Size(75, 23);
+            this.btnPreview.TabIndex = 13;
+            this.btnPreview.Text = "Preview";
+            this.btnPreview.UseVisualStyleBackColor = true;
+            this.btnPreview.Click += new System.EventHandler(this.btnPreview_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1071, 805);
-            this.Controls.Add(this.button4);
-            this.Controls.Add(this.button3);
+            this.Controls.Add(this.btnPreview);
+            this.Controls.Add(this.btnSaveTemplate);
+            this.Controls.Add(this.btnLoadTemplate);
             this.Controls.Add(this.TextPanel);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.gvCSVPreview);
-            this.Controls.Add(this.button2);
+            this.Controls.Add(this.btnBrowse);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.txtCSVFileInput);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.btnGenerate);
             this.Controls.Add(this.label1);
             this.Name = "Form1";
             this.Text = "Basic SQL Generator";
             this.Load += new System.EventHandler(this.Form1_Load);
+            this.Click += new System.EventHandler(this.btnGenerate_Click);
             ((System.ComponentModel.ISupportInitialize)(this.gvCSVPreview)).EndInit();
             this.TextPanel.ResumeLayout(false);
             this.PanelSearch.ResumeLayout(false);
@@ -239,10 +256,10 @@
         #endregion
 
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button btnGenerate;
         private System.Windows.Forms.TextBox txtCSVFileInput;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button btnBrowse;
         private System.Windows.Forms.DataGridView gvCSVPreview;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Panel TextPanel;
@@ -251,7 +268,8 @@
         private System.Windows.Forms.Button BtnPrevSearch;
         private System.Windows.Forms.Button BtnCloseSearch;
         private System.Windows.Forms.TextBox TxtSearch;
-        private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Button btnLoadTemplate;
+        private System.Windows.Forms.Button btnSaveTemplate;
+        private System.Windows.Forms.Button btnPreview;
     }
 }

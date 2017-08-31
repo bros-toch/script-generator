@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.VisualBasic.FileIO;
 using ScintillaNET;
-using ScintillaNET.Demo.Utils;
 using ScriptGenerator.Properties;
+using ScriptGenerator.Utils.Providers;
 
 namespace ScriptGenerator
 {
@@ -24,153 +24,48 @@ namespace ScriptGenerator
             InitializeComponent();
         }
 
-        private static DataTable GetDataTabletFromCSVFile(string path, bool isPreview = true)
+        private void btnBrowse_Click(object sender, EventArgs e)
         {
-            DataTable csvData = new DataTable();
-
-            try
-            {
-                using (TextFieldParser csvReader = new TextFieldParser(path))
-                {
-                    csvReader.SetDelimiters(new string[] { "," });
-                    csvReader.HasFieldsEnclosedInQuotes = true;
-                    string[] colFields = csvReader.ReadFields();
-
-                    foreach (string column in colFields)
-                    {
-                        DataColumn serialno = new DataColumn(column);
-                        serialno.AllowDBNull = true;
-                        csvData.Columns.Add(serialno);
-                    }
-                    var count = 0;
-                    while (!csvReader.EndOfData)
-                    {
-                        if (isPreview)
-                        {
-                            if (count++ > 10)
-                            {
-                                return csvData;
-                            }
-                        }
-                        string[] fieldData = csvReader.ReadFields();
-                        DataRow dr = csvData.NewRow();
-                        //Making empty value as empty
-                        for (int i = 0; i < fieldData.Length; i++)
-                        {
-                            if (fieldData[i] == null)
-                                fieldData[i] = string.Empty;
-
-                            dr[i] = fieldData[i];
-                        }
-                        csvData.Rows.Add(dr);
-                    }
-
-                }
-            }
-            catch (Exception ex)
-            {
-            }
-            return csvData;
-        }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog fdlg = new OpenFileDialog();
+            var fdlg = new OpenFileDialog();
             fdlg.Title = "CSV Open File Dialog";
             fdlg.InitialDirectory = @"c:\";
-            fdlg.Filter = "CSV Files (*.csv)|*.csv";
-            fdlg.FilterIndex = 2;
+            fdlg.Filter = string.Join("|", DataSourceHelper.LoadeDataSources.Select(x => x.FilterExtension));
+
             fdlg.RestoreDirectory = true;
-            fdlg.InitialDirectory = Settings.Default.CSVFolder;
+            fdlg.InitialDirectory = Settings.Default.InputFolder;
             if (fdlg.ShowDialog() == DialogResult.OK)
             {
-                string fileToOpen = fdlg.FileName;
+                var fileToOpen = fdlg.FileName;
 
                 txtCSVFileInput.Text = fdlg.FileName;
-                gvCSVPreview.DataSource = GetDataTabletFromCSVFile(fileToOpen);
+                gvCSVPreview.DataSource = DataSourceHelper.FindByExtension(Path.GetExtension(fileToOpen)).LoadFromFile(fileToOpen);
 
-                Settings.Default.CSVFilePath = fdlg.FileName;
-                Settings.Default.CSVFolder = Path.GetDirectoryName(fdlg.FileName);
+                Settings.Default.InputFilePath = fdlg.FileName;
+                Settings.Default.InputFolder = Path.GetDirectoryName(fdlg.FileName);
                 Settings.Default.Save();
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void btnGenerate_Click(object sender, EventArgs e)
         {
-            if (!File.Exists(txtCSVFileInput.Text))
+            if (PreValidate())
             {
-                MessageBox.Show("Please choose CSV File",
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error// for Warning  
-                    //MessageBoxIcon.Error // for Error 
-                    //MessageBoxIcon.Information  // for Information
-                    //MessageBoxIcon.Question // for Question
-                );
-                return;
-            }
-            if (TextArea.Text.Length == 0)
-            {
-                MessageBox.Show("SQL File required",
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error// for Warning  
-                    //MessageBoxIcon.Error // for Error 
-                    //MessageBoxIcon.Information  // for Information
-                    //MessageBoxIcon.Question // for Question
-                );
+                btnGenerate.Text = "Generating";
+                var text = GenerateTemplate();
+                btnGenerate.Text = "Generate";
+                var saveFileDialog1 = new SaveFileDialog
+                {
+                    Filter = "SQL File|*.sql",
+                    Title = "Save an SQL File"
+                };
+                saveFileDialog1.ShowDialog();
 
-                return;
-            }
-            button1.Text = "Generating";
-            var data = GetDataTabletFromCSVFile(txtCSVFileInput.Text, false);
+                if (saveFileDialog1.FileName != "")
+                {
+                    File.WriteAllText(saveFileDialog1.FileName, text);
 
-            var st = new StringBuilder();
-
-            foreach (DataRow dataRow in data.Rows)
-            {
-                var dict = dataRow.Table.Columns
-                    .Cast<DataColumn>()
-                    .ToDictionary(c => c.ColumnName, c => dataRow[c]);
-
-
-                var text = SmartFormat.Smart.Format(TextArea.Text, dict);
-
-                st.AppendLine(text);
-                st.AppendLine();
-            }
-            button1.Text = "Generate";
-            SaveFileDialog saveFileDialog1 = new SaveFileDialog
-            {
-                Filter = "SQL File|*.sql",
-                Title = "Save an SQL File"
-            };
-            saveFileDialog1.ShowDialog();
-
-            // If the file name is not an empty string open it for saving.  
-            if (saveFileDialog1.FileName != "")
-            {
-                File.WriteAllText(saveFileDialog1.FileName, st.ToString());
-
-                MessageBox.Show("File has been saved to " + saveFileDialog1.FileName);
-            }
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog fdlg = new OpenFileDialog();
-            fdlg.Title = "SQL Open File Dialog";
-            fdlg.InitialDirectory = @"c:\";
-            fdlg.Filter = "SQL Files (*.sql)|*.sql";
-            fdlg.FilterIndex = 2;
-            fdlg.RestoreDirectory = true;
-            fdlg.InitialDirectory = Settings.Default.SQLFolder;
-            if (fdlg.ShowDialog() == DialogResult.OK)
-            {
-                LoadDataFromFile(fdlg.FileName);
-                Settings.Default.SQLFilePath = fdlg.FileName;
-                Settings.Default.SQLFolder = Path.GetDirectoryName(fdlg.FileName);
-                Settings.Default.Save();
+                    MessageBox.Show("File has been saved to " + saveFileDialog1.FileName);
+                }
             }
         }
 
@@ -212,24 +107,30 @@ namespace ScriptGenerator
             // DRAG DROP
             InitDragDropFile();
 
-            if (File.Exists(Settings.Default.SQLFilePath))
+            if (File.Exists(Settings.Default.TemplateFilePath))
             {
-                LoadDataFromFile(Settings.Default.SQLFilePath);
+                LoadDataFromFile(Settings.Default.TemplateFilePath);
             }
 
             // INIT HOTKEYS
             InitHotkeys();
 
-            if (Directory.Exists(Settings.Default.CSVFolder))
+            if (Directory.Exists(Settings.Default.InputFolder))
             {
-                txtCSVFileInput.Text = Settings.Default.CSVFolder;
+                txtCSVFileInput.Text = Settings.Default.InputFilePath;
             }
 
-            if (File.Exists(Settings.Default.CSVFilePath))
+            if (File.Exists(Settings.Default.InputFilePath))
             {
-                gvCSVPreview.DataSource = GetDataTabletFromCSVFile(Settings.Default.CSVFilePath);
+                gvCSVPreview.DataSource = DataSourceHelper.FindByExtension(Path.GetExtension(Settings.Default.InputFilePath)).LoadFromFile(Settings.Default.InputFilePath);
             }
         }
+
+        private void OnTextChanged(object sender, EventArgs e)
+        {
+
+        }
+
         #region Numbers, Bookmarks, Code Folding
 
         /// <summary>
@@ -251,6 +152,7 @@ namespace ScriptGenerator
         /// change this to whatever margin you want the bookmarks/breakpoints to show in
         /// </summary>
         private const int BOOKMARK_MARGIN = 2;
+
         private const int BOOKMARK_MARKER = 2;
 
         /// <summary>
@@ -317,7 +219,7 @@ namespace ScriptGenerator
             TextArea.Margins[FOLDING_MARGIN].Width = 20;
 
             // Set colors for all folding markers
-            for (int i = 25; i <= 31; i++)
+            for (var i = 25; i <= 31; i++)
             {
                 TextArea.Markers[i].SetForeColor(IntToColor(BACK_COLOR)); // styles for [+] and [-]
                 TextArea.Markers[i].SetBackColor(IntToColor(FORE_COLOR)); // styles for [+] and [-]
@@ -365,23 +267,25 @@ namespace ScriptGenerator
         {
 
             TextArea.AllowDrop = true;
-            TextArea.DragEnter += delegate (object sender, DragEventArgs e) {
+            TextArea.DragEnter += delegate(object sender, DragEventArgs e)
+            {
                 if (e.Data.GetDataPresent(DataFormats.FileDrop))
                     e.Effect = DragDropEffects.Copy;
                 else
                     e.Effect = DragDropEffects.None;
             };
-            TextArea.DragDrop += delegate (object sender, DragEventArgs e) {
+            TextArea.DragDrop += delegate(object sender, DragEventArgs e)
+            {
 
                 // get file drop
                 if (e.Data.GetDataPresent(DataFormats.FileDrop))
                 {
 
-                    Array a = (Array)e.Data.GetData(DataFormats.FileDrop);
+                    var a = (Array) e.Data.GetData(DataFormats.FileDrop);
                     if (a != null)
                     {
 
-                        string path = a.GetValue(0).ToString();
+                        var path = a.GetValue(0).ToString();
 
                         LoadDataFromFile(path);
 
@@ -392,10 +296,6 @@ namespace ScriptGenerator
         }
 
         #endregion
-        private void OnTextChanged(object sender, EventArgs e)
-        {
-            
-        }
 
         private void InitColors()
         {
@@ -468,7 +368,7 @@ namespace ScriptGenerator
             TextArea.SetKeywords(0, "class extends implements import interface new case do while else if for in switch throw get set function var try catch finally while with default break continue delete return each const namespace package include use is as instanceof typeof author copy default deprecated eventType example exampleText exception haxe inheritDoc internal link mtasc mxmlc param private return see serial serialData serialField since throws usage version langversion playerversion productversion dynamic private public partial static intrinsic internal native override protected AS3 final super this arguments null Infinity NaN undefined true false abstract as base bool break by byte case catch char checked class const continue decimal default delegate do double descending explicit event extern else enum false finally fixed float for foreach from goto group if implicit in int interface internal into is lock long new null namespace object operator out override orderby params private protected public readonly ref return switch struct sbyte sealed short sizeof stackalloc static string select this throw true try typeof uint ulong unchecked unsafe ushort using var virtual volatile void while where yield");
             TextArea.SetKeywords(1, "void Null ArgumentError arguments Array Boolean Class Date DefinitionError Error EvalError Function int Math Namespace Number Object RangeError ReferenceError RegExp SecurityError String SyntaxError TypeError uint XML XMLList Boolean Byte Char DateTime Decimal Double Int16 Int32 Int64 IntPtr SByte Single UInt16 UInt32 UInt64 UIntPtr Void Path File System Windows Forms ScintillaNET");
 
-          
+
 
         }
 
@@ -476,7 +376,7 @@ namespace ScriptGenerator
 
         public static Color IntToColor(int rgb)
         {
-            return Color.FromArgb(255, (byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb);
+            return Color.FromArgb(255, (byte) (rgb >> 16), (byte) (rgb >> 8), (byte) rgb);
         }
 
         public void InvokeIfNeeded(Action action)
@@ -493,11 +393,96 @@ namespace ScriptGenerator
 
         #endregion
 
-        private void button4_Click(object sender, EventArgs e)
+        private void btnSaveTemplate_Click(object sender, EventArgs e)
         {
-
-            File.WriteAllText(Settings.Default.SQLFilePath, TextArea.Text);
-            MessageBox.Show("File saved.");
+            if (string.IsNullOrWhiteSpace(Settings.Default.TemplateFilePath))
+            {
+                MessageBox.Show("Please Choose template file");
+            }
+            else
+            {
+                File.WriteAllText(Settings.Default.TemplateFilePath, TextArea.Text);
+            }
         }
+
+        private void btnLoadTemplate_Click(object sender, EventArgs e)
+        {
+            var fdlg = new OpenFileDialog();
+            fdlg.Title = "Save template File";
+            fdlg.InitialDirectory = @"c:\";
+            fdlg.Filter = "Text Files (*.txt)|*.txt|Sql Files (*.sql)|*.sql";
+            
+            fdlg.RestoreDirectory = true;
+            fdlg.InitialDirectory = Settings.Default.TemplateFolder;
+            if (fdlg.ShowDialog() == DialogResult.OK)
+            {
+                LoadDataFromFile(fdlg.FileName);
+                Settings.Default.TemplateFilePath = fdlg.FileName;
+                Settings.Default.TemplateFilePath = Path.GetDirectoryName(fdlg.FileName);
+                Settings.Default.Save();
+            }
+
+        }
+
+        private bool PreValidate()
+        {
+            if (!File.Exists(txtCSVFileInput.Text))
+            {
+                MessageBox.Show("Input file File",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+                return false;
+            }
+            if (TextArea.Text.Length == 0)
+            {
+                MessageBox.Show("Template is required",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+
+                return false;
+            }
+
+            return true;
+        }
+
+        private string GenerateTemplate()
+        {
+            var data = DataSourceHelper.FindByExtension(Path.GetExtension(txtCSVFileInput.Text)).LoadFromFile(txtCSVFileInput.Text);
+
+            var st = new StringBuilder();
+
+            foreach (DataRow dataRow in data.Rows)
+            {
+                var dict = dataRow.Table.Columns
+                    .Cast<DataColumn>()
+                    .ToDictionary(c => c.ColumnName, c => dataRow[c]);
+
+
+                var text = SmartFormat.Smart.Format(TextArea.Text, dict);
+
+                st.AppendLine(text);
+                st.AppendLine();
+            }
+
+            return st.ToString();
+        }
+
+        private void btnPreview_Click(object sender, EventArgs e)
+        {
+            PreviewForm = PreviewForm ?? new PreviewForm {ParentForm = this};
+            PreviewForm.Show();
+            Hide();
+
+            if (PreValidate())
+            {
+                PreviewForm.SetText(GenerateTemplate());
+            }
+        }
+
+        public PreviewForm PreviewForm { get; set; }
     }
 }

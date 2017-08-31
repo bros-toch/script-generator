@@ -26,48 +26,48 @@ namespace ScriptGenerator.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string SQLFolder {
+        public string TemplateFolder {
             get {
-                return ((string)(this["SQLFolder"]));
+                return ((string)(this["TemplateFolder"]));
             }
             set {
-                this["SQLFolder"] = value;
+                this["TemplateFolder"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string CSVFolder {
+        public string InputFolder {
             get {
-                return ((string)(this["CSVFolder"]));
+                return ((string)(this["InputFolder"]));
             }
             set {
-                this["CSVFolder"] = value;
+                this["InputFolder"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string SQLFilePath {
+        public string TemplateFilePath {
             get {
-                return ((string)(this["SQLFilePath"]));
+                return ((string)(this["TemplateFilePath"]));
             }
             set {
-                this["SQLFilePath"] = value;
+                this["TemplateFilePath"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string CSVFilePath {
+        public string InputFilePath {
             get {
-                return ((string)(this["CSVFilePath"]));
+                return ((string)(this["InputFilePath"]));
             }
             set {
-                this["CSVFilePath"] = value;
+                this["InputFilePath"] = value;
             }
         }
     }
