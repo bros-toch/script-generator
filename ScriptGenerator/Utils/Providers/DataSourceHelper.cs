@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 
 namespace ScriptGenerator.Utils.Providers
@@ -20,14 +21,22 @@ namespace ScriptGenerator.Utils.Providers
 
         public static IDataSource FindByExtension(string extension)
         {
-            var dataSource = LoadeDataSources.SingleOrDefault(x => x.Extensions.Split(';').Contains(extension));
-
-            if (dataSource == null)
+            if (!string.IsNullOrEmpty(extension))
             {
-                throw  new NotSupportedException(string.Format("{0} doesn't support", extension));
-            }
+                if (!extension.StartsWith("."))
+                {
+                    extension = Path.GetExtension(extension);
+                }
+                var dataSource = LoadeDataSources.SingleOrDefault(x => x.Extensions.Split(';').Contains(extension));
 
-            return dataSource;
+                if (dataSource == null)
+                {
+                    throw new NotSupportedException(string.Format("{0} doesn't support", extension));
+                }
+
+                return dataSource;
+            }
+            return null;
         }
     }
 }

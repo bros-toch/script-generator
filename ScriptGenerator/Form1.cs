@@ -17,11 +17,19 @@ namespace ScriptGenerator
 {
     public partial class Form1 : Form
     {
-        ScintillaNET.Scintilla TextArea;
+        Scintilla TemplateTextArea;
 
         public Form1()
         {
             InitializeComponent();
+
+            Settings.Default.SettingChanging += (sender, args) =>
+            {
+                if (args.SettingName == nameof(Settings.Default.TemplateFilePath))
+                {
+                    lblTemplateFilePath.Text = args.NewValue as string;
+                }
+            };
         }
 
         private void btnBrowse_Click(object sender, EventArgs e)
@@ -37,7 +45,7 @@ namespace ScriptGenerator
             {
                 var fileToOpen = fdlg.FileName;
 
-                txtCSVFileInput.Text = fdlg.FileName;
+                txtInputFile.Text = fdlg.FileName;
                 gvCSVPreview.DataSource = DataSourceHelper.FindByExtension(Path.GetExtension(fileToOpen)).LoadFromFile(fileToOpen);
 
                 Settings.Default.InputFilePath = fdlg.FileName;
@@ -60,7 +68,7 @@ namespace ScriptGenerator
                 };
                 saveFileDialog1.ShowDialog();
 
-                if (saveFileDialog1.FileName != "")
+                if (File.Exists(saveFileDialog1.FileName))
                 {
                     File.WriteAllText(saveFileDialog1.FileName, text);
 
@@ -73,23 +81,23 @@ namespace ScriptGenerator
         {
             if (File.Exists(path))
             {
-                TextArea.Text = File.ReadAllText(path);
+                TemplateTextArea.Text = File.ReadAllText(path);
             }
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             // CREATE CONTROL
-            TextArea = new ScintillaNET.Scintilla();
-            TextPanel.Controls.Add(TextArea);
+            TemplateTextArea = new ScintillaNET.Scintilla();
+            TextPanel.Controls.Add(TemplateTextArea);
 
             // BASIC CONFIG
-            TextArea.Dock = System.Windows.Forms.DockStyle.Fill;
-            TextArea.TextChanged += (this.OnTextChanged);
+            TemplateTextArea.Dock = System.Windows.Forms.DockStyle.Fill;
+            TemplateTextArea.TextChanged += (this.OnTextChanged);
 
             // INITIAL VIEW CONFIG
-            TextArea.WrapMode = WrapMode.None;
-            TextArea.IndentationGuides = IndentView.LookBoth;
+            TemplateTextArea.WrapMode = WrapMode.None;
+            TemplateTextArea.IndentationGuides = IndentView.LookBoth;
 
             // STYLING
             InitColors();
@@ -110,14 +118,15 @@ namespace ScriptGenerator
             if (File.Exists(Settings.Default.TemplateFilePath))
             {
                 LoadDataFromFile(Settings.Default.TemplateFilePath);
+                lblTemplateFilePath.Text = Settings.Default.TemplateFilePath;
             }
 
             // INIT HOTKEYS
             InitHotkeys();
 
-            if (Directory.Exists(Settings.Default.InputFolder))
+            if (File.Exists(Settings.Default.InputFilePath))
             {
-                txtCSVFileInput.Text = Settings.Default.InputFilePath;
+                txtInputFile.Text = Settings.Default.InputFilePath;
             }
 
             if (File.Exists(Settings.Default.InputFilePath))
@@ -168,18 +177,18 @@ namespace ScriptGenerator
         private void InitNumberMargin()
         {
 
-            TextArea.Styles[Style.LineNumber].BackColor = IntToColor(BACK_COLOR);
-            TextArea.Styles[Style.LineNumber].ForeColor = IntToColor(FORE_COLOR);
-            TextArea.Styles[Style.IndentGuide].ForeColor = IntToColor(FORE_COLOR);
-            TextArea.Styles[Style.IndentGuide].BackColor = IntToColor(BACK_COLOR);
+            TemplateTextArea.Styles[Style.LineNumber].BackColor = IntToColor(BACK_COLOR);
+            TemplateTextArea.Styles[Style.LineNumber].ForeColor = IntToColor(FORE_COLOR);
+            TemplateTextArea.Styles[Style.IndentGuide].ForeColor = IntToColor(FORE_COLOR);
+            TemplateTextArea.Styles[Style.IndentGuide].BackColor = IntToColor(BACK_COLOR);
 
-            var nums = TextArea.Margins[NUMBER_MARGIN];
+            var nums = TemplateTextArea.Margins[NUMBER_MARGIN];
             nums.Width = 30;
             nums.Type = MarginType.Number;
             nums.Sensitive = true;
             nums.Mask = 0;
 
-            TextArea.MarginClick += TextArea_MarginClick;
+            TemplateTextArea.MarginClick += TextArea_MarginClick;
         }
 
         private void InitBookmarkMargin()
@@ -187,14 +196,14 @@ namespace ScriptGenerator
 
             //TextArea.SetFoldMarginColor(true, IntToColor(BACK_COLOR));
 
-            var margin = TextArea.Margins[BOOKMARK_MARGIN];
+            var margin = TemplateTextArea.Margins[BOOKMARK_MARGIN];
             margin.Width = 20;
             margin.Sensitive = true;
             margin.Type = MarginType.Symbol;
             margin.Mask = (1 << BOOKMARK_MARKER);
             //margin.Cursor = MarginCursor.Arrow;
 
-            var marker = TextArea.Markers[BOOKMARK_MARKER];
+            var marker = TemplateTextArea.Markers[BOOKMARK_MARKER];
             marker.Symbol = MarkerSymbol.Circle;
             marker.SetBackColor(IntToColor(0xFF003B));
             marker.SetForeColor(IntToColor(0x000000));
@@ -205,37 +214,37 @@ namespace ScriptGenerator
         private void InitCodeFolding()
         {
 
-            TextArea.SetFoldMarginColor(true, IntToColor(BACK_COLOR));
-            TextArea.SetFoldMarginHighlightColor(true, IntToColor(BACK_COLOR));
+            TemplateTextArea.SetFoldMarginColor(true, IntToColor(BACK_COLOR));
+            TemplateTextArea.SetFoldMarginHighlightColor(true, IntToColor(BACK_COLOR));
 
             // Enable code folding
-            TextArea.SetProperty("fold", "1");
-            TextArea.SetProperty("fold.compact", "1");
+            TemplateTextArea.SetProperty("fold", "1");
+            TemplateTextArea.SetProperty("fold.compact", "1");
 
             // Configure a margin to display folding symbols
-            TextArea.Margins[FOLDING_MARGIN].Type = MarginType.Symbol;
-            TextArea.Margins[FOLDING_MARGIN].Mask = Marker.MaskFolders;
-            TextArea.Margins[FOLDING_MARGIN].Sensitive = true;
-            TextArea.Margins[FOLDING_MARGIN].Width = 20;
+            TemplateTextArea.Margins[FOLDING_MARGIN].Type = MarginType.Symbol;
+            TemplateTextArea.Margins[FOLDING_MARGIN].Mask = Marker.MaskFolders;
+            TemplateTextArea.Margins[FOLDING_MARGIN].Sensitive = true;
+            TemplateTextArea.Margins[FOLDING_MARGIN].Width = 20;
 
             // Set colors for all folding markers
             for (var i = 25; i <= 31; i++)
             {
-                TextArea.Markers[i].SetForeColor(IntToColor(BACK_COLOR)); // styles for [+] and [-]
-                TextArea.Markers[i].SetBackColor(IntToColor(FORE_COLOR)); // styles for [+] and [-]
+                TemplateTextArea.Markers[i].SetForeColor(IntToColor(BACK_COLOR)); // styles for [+] and [-]
+                TemplateTextArea.Markers[i].SetBackColor(IntToColor(FORE_COLOR)); // styles for [+] and [-]
             }
 
             // Configure folding markers with respective symbols
-            TextArea.Markers[Marker.Folder].Symbol = CODEFOLDING_CIRCULAR ? MarkerSymbol.CirclePlus : MarkerSymbol.BoxPlus;
-            TextArea.Markers[Marker.FolderOpen].Symbol = CODEFOLDING_CIRCULAR ? MarkerSymbol.CircleMinus : MarkerSymbol.BoxMinus;
-            TextArea.Markers[Marker.FolderEnd].Symbol = CODEFOLDING_CIRCULAR ? MarkerSymbol.CirclePlusConnected : MarkerSymbol.BoxPlusConnected;
-            TextArea.Markers[Marker.FolderMidTail].Symbol = MarkerSymbol.TCorner;
-            TextArea.Markers[Marker.FolderOpenMid].Symbol = CODEFOLDING_CIRCULAR ? MarkerSymbol.CircleMinusConnected : MarkerSymbol.BoxMinusConnected;
-            TextArea.Markers[Marker.FolderSub].Symbol = MarkerSymbol.VLine;
-            TextArea.Markers[Marker.FolderTail].Symbol = MarkerSymbol.LCorner;
+            TemplateTextArea.Markers[Marker.Folder].Symbol = CODEFOLDING_CIRCULAR ? MarkerSymbol.CirclePlus : MarkerSymbol.BoxPlus;
+            TemplateTextArea.Markers[Marker.FolderOpen].Symbol = CODEFOLDING_CIRCULAR ? MarkerSymbol.CircleMinus : MarkerSymbol.BoxMinus;
+            TemplateTextArea.Markers[Marker.FolderEnd].Symbol = CODEFOLDING_CIRCULAR ? MarkerSymbol.CirclePlusConnected : MarkerSymbol.BoxPlusConnected;
+            TemplateTextArea.Markers[Marker.FolderMidTail].Symbol = MarkerSymbol.TCorner;
+            TemplateTextArea.Markers[Marker.FolderOpenMid].Symbol = CODEFOLDING_CIRCULAR ? MarkerSymbol.CircleMinusConnected : MarkerSymbol.BoxMinusConnected;
+            TemplateTextArea.Markers[Marker.FolderSub].Symbol = MarkerSymbol.VLine;
+            TemplateTextArea.Markers[Marker.FolderTail].Symbol = MarkerSymbol.LCorner;
 
             // Enable automatic folding
-            TextArea.AutomaticFold = (AutomaticFold.Show | AutomaticFold.Click | AutomaticFold.Change);
+            TemplateTextArea.AutomaticFold = (AutomaticFold.Show | AutomaticFold.Click | AutomaticFold.Change);
 
         }
 
@@ -245,7 +254,7 @@ namespace ScriptGenerator
             {
                 // Do we have a marker for this line?
                 const uint mask = (1 << BOOKMARK_MARKER);
-                var line = TextArea.Lines[TextArea.LineFromPosition(e.Position)];
+                var line = TemplateTextArea.Lines[TemplateTextArea.LineFromPosition(e.Position)];
                 if ((line.MarkerGet() & mask) > 0)
                 {
                     // Remove existing bookmark
@@ -266,15 +275,15 @@ namespace ScriptGenerator
         public void InitDragDropFile()
         {
 
-            TextArea.AllowDrop = true;
-            TextArea.DragEnter += delegate(object sender, DragEventArgs e)
+            TemplateTextArea.AllowDrop = true;
+            TemplateTextArea.DragEnter += delegate(object sender, DragEventArgs e)
             {
                 if (e.Data.GetDataPresent(DataFormats.FileDrop))
                     e.Effect = DragDropEffects.Copy;
                 else
                     e.Effect = DragDropEffects.None;
             };
-            TextArea.DragDrop += delegate(object sender, DragEventArgs e)
+            TemplateTextArea.DragDrop += delegate(object sender, DragEventArgs e)
             {
 
                 // get file drop
@@ -300,7 +309,7 @@ namespace ScriptGenerator
         private void InitColors()
         {
 
-            TextArea.SetSelectionBackColor(true, IntToColor(0x114D9C));
+            TemplateTextArea.SetSelectionBackColor(true, IntToColor(0x114D9C));
 
         }
 
@@ -320,23 +329,23 @@ namespace ScriptGenerator
             //HotKeyManager.AddHotKey(this, CloseSearch, Keys.Escape);
 
             // remove conflicting hotkeys from scintilla
-            TextArea.ClearCmdKey(Keys.Control | Keys.F);
-            TextArea.ClearCmdKey(Keys.Control | Keys.R);
-            TextArea.ClearCmdKey(Keys.Control | Keys.H);
-            TextArea.ClearCmdKey(Keys.Control | Keys.L);
-            TextArea.ClearCmdKey(Keys.Control | Keys.U);
+            TemplateTextArea.ClearCmdKey(Keys.Control | Keys.F);
+            TemplateTextArea.ClearCmdKey(Keys.Control | Keys.R);
+            TemplateTextArea.ClearCmdKey(Keys.Control | Keys.H);
+            TemplateTextArea.ClearCmdKey(Keys.Control | Keys.L);
+            TemplateTextArea.ClearCmdKey(Keys.Control | Keys.U);
 
         }
 
         private void InitSyntaxColoring()
         {
             // Configure the default style
-            TextArea.StyleResetDefault();
-            TextArea.Styles[Style.Default].Font = "Consolas";
-            TextArea.Styles[Style.Default].Size = 10;
-            TextArea.Styles[Style.Default].BackColor = IntToColor(0x212121);
-            TextArea.Styles[Style.Default].ForeColor = IntToColor(0xFFFFFF);
-            TextArea.StyleClearAll();
+            TemplateTextArea.StyleResetDefault();
+            TemplateTextArea.Styles[Style.Default].Font = "Consolas";
+            TemplateTextArea.Styles[Style.Default].Size = 10;
+            TemplateTextArea.Styles[Style.Default].BackColor = IntToColor(0x212121);
+            TemplateTextArea.Styles[Style.Default].ForeColor = IntToColor(0xFFFFFF);
+            TemplateTextArea.StyleClearAll();
 
             // Configure the CPP (C#) lexer styles
             //TextArea.Styles[Style.Cpp.Identifier].ForeColor = IntToColor(0xD0DAE2);
@@ -355,18 +364,18 @@ namespace ScriptGenerator
             //TextArea.Styles[Style.Cpp.CommentDocKeyword].ForeColor = IntToColor(0xB3D991);
             //TextArea.Styles[Style.Cpp.CommentDocKeywordError].ForeColor = IntToColor(0xFF0000);
             //TextArea.Styles[Style.Cpp.GlobalClass].ForeColor = IntToColor(0x48A8EE);
-            TextArea.Styles[Style.Sql.Word].ForeColor = Color.FromArgb(147, 199, 99);
-            TextArea.Styles[Style.Sql.Word].Bold = true;
-            TextArea.Styles[Style.Sql.Identifier].ForeColor = Color.FromArgb(255, 255, 255);
-            TextArea.Styles[Style.Sql.Character].ForeColor = Color.FromArgb(236, 118, 0);
-            TextArea.Styles[Style.Sql.Number].ForeColor = Color.FromArgb(255, 205, 34);
-            TextArea.Styles[Style.Sql.Operator].ForeColor = Color.FromArgb(232, 226, 183);
-            TextArea.Styles[Style.Sql.Comment].ForeColor = Color.FromArgb(102, 116, 123);
-            TextArea.Styles[Style.Sql.CommentLine].ForeColor = Color.FromArgb(102, 116, 123);
-            TextArea.Lexer = Lexer.Sql;
+            TemplateTextArea.Styles[Style.Sql.Word].ForeColor = Color.FromArgb(147, 199, 99);
+            TemplateTextArea.Styles[Style.Sql.Word].Bold = true;
+            TemplateTextArea.Styles[Style.Sql.Identifier].ForeColor = Color.FromArgb(255, 255, 255);
+            TemplateTextArea.Styles[Style.Sql.Character].ForeColor = Color.FromArgb(236, 118, 0);
+            TemplateTextArea.Styles[Style.Sql.Number].ForeColor = Color.FromArgb(255, 205, 34);
+            TemplateTextArea.Styles[Style.Sql.Operator].ForeColor = Color.FromArgb(232, 226, 183);
+            TemplateTextArea.Styles[Style.Sql.Comment].ForeColor = Color.FromArgb(102, 116, 123);
+            TemplateTextArea.Styles[Style.Sql.CommentLine].ForeColor = Color.FromArgb(102, 116, 123);
+            TemplateTextArea.Lexer = Lexer.Sql;
 
-            TextArea.SetKeywords(0, "class extends implements import interface new case do while else if for in switch throw get set function var try catch finally while with default break continue delete return each const namespace package include use is as instanceof typeof author copy default deprecated eventType example exampleText exception haxe inheritDoc internal link mtasc mxmlc param private return see serial serialData serialField since throws usage version langversion playerversion productversion dynamic private public partial static intrinsic internal native override protected AS3 final super this arguments null Infinity NaN undefined true false abstract as base bool break by byte case catch char checked class const continue decimal default delegate do double descending explicit event extern else enum false finally fixed float for foreach from goto group if implicit in int interface internal into is lock long new null namespace object operator out override orderby params private protected public readonly ref return switch struct sbyte sealed short sizeof stackalloc static string select this throw true try typeof uint ulong unchecked unsafe ushort using var virtual volatile void while where yield");
-            TextArea.SetKeywords(1, "void Null ArgumentError arguments Array Boolean Class Date DefinitionError Error EvalError Function int Math Namespace Number Object RangeError ReferenceError RegExp SecurityError String SyntaxError TypeError uint XML XMLList Boolean Byte Char DateTime Decimal Double Int16 Int32 Int64 IntPtr SByte Single UInt16 UInt32 UInt64 UIntPtr Void Path File System Windows Forms ScintillaNET");
+            TemplateTextArea.SetKeywords(0, "class extends implements import interface new case do while else if for in switch throw get set function var try catch finally while with default break continue delete return each const namespace package include use is as instanceof typeof author copy default deprecated eventType example exampleText exception haxe inheritDoc internal link mtasc mxmlc param private return see serial serialData serialField since throws usage version langversion playerversion productversion dynamic private public partial static intrinsic internal native override protected AS3 final super this arguments null Infinity NaN undefined true false abstract as base bool break by byte case catch char checked class const continue decimal default delegate do double descending explicit event extern else enum false finally fixed float for foreach from goto group if implicit in int interface internal into is lock long new null namespace object operator out override orderby params private protected public readonly ref return switch struct sbyte sealed short sizeof stackalloc static string select this throw true try typeof uint ulong unchecked unsafe ushort using var virtual volatile void while where yield");
+            TemplateTextArea.SetKeywords(1, "void Null ArgumentError arguments Array Boolean Class Date DefinitionError Error EvalError Function int Math Namespace Number Object RangeError ReferenceError RegExp SecurityError String SyntaxError TypeError uint XML XMLList Boolean Byte Char DateTime Decimal Double Int16 Int32 Int64 IntPtr SByte Single UInt16 UInt32 UInt64 UIntPtr Void Path File System Windows Forms ScintillaNET");
 
 
 
@@ -395,13 +404,23 @@ namespace ScriptGenerator
 
         private void btnSaveTemplate_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(Settings.Default.TemplateFilePath))
+            string filePath = Settings.Default.TemplateFilePath;
+
+            if (!File.Exists(Settings.Default.TemplateFilePath))
             {
-                MessageBox.Show("Please Choose template file");
+                var saveFileDialog1 = new SaveFileDialog
+                {
+                    Filter = "SQL File|*.sql",
+                    Title = "Save an SQL File"
+                };
+                saveFileDialog1.ShowDialog();
+
+                filePath = saveFileDialog1.FileName;
             }
-            else
+
+            if (File.Exists(filePath))
             {
-                File.WriteAllText(Settings.Default.TemplateFilePath, TextArea.Text);
+                File.WriteAllText(Settings.Default.TemplateFilePath, filePath);
             }
         }
 
@@ -418,15 +437,14 @@ namespace ScriptGenerator
             {
                 LoadDataFromFile(fdlg.FileName);
                 Settings.Default.TemplateFilePath = fdlg.FileName;
-                Settings.Default.TemplateFilePath = Path.GetDirectoryName(fdlg.FileName);
+                Settings.Default.TemplateFolder = Path.GetDirectoryName(fdlg.FileName);
                 Settings.Default.Save();
             }
-
         }
 
         private bool PreValidate()
         {
-            if (!File.Exists(txtCSVFileInput.Text))
+            if (!File.Exists(txtInputFile.Text))
             {
                 MessageBox.Show("Input file File",
                     "Error",
@@ -435,7 +453,7 @@ namespace ScriptGenerator
                 );
                 return false;
             }
-            if (TextArea.Text.Length == 0)
+            if (TemplateTextArea.Text.Length == 0)
             {
                 MessageBox.Show("Template is required",
                     "Error",
@@ -451,7 +469,7 @@ namespace ScriptGenerator
 
         private string GenerateTemplate()
         {
-            var data = DataSourceHelper.FindByExtension(Path.GetExtension(txtCSVFileInput.Text)).LoadFromFile(txtCSVFileInput.Text);
+            var data = DataSourceHelper.FindByExtension(Path.GetExtension(txtInputFile.Text)).LoadFromFile(txtInputFile.Text);
 
             var st = new StringBuilder();
 
@@ -462,7 +480,7 @@ namespace ScriptGenerator
                     .ToDictionary(c => c.ColumnName, c => dataRow[c]);
 
 
-                var text = SmartFormat.Smart.Format(TextArea.Text, dict);
+                var text = SmartFormat.Smart.Format(TemplateTextArea.Text, dict);
 
                 st.AppendLine(text);
                 st.AppendLine();
@@ -484,5 +502,12 @@ namespace ScriptGenerator
         }
 
         public PreviewForm PreviewForm { get; set; }
+
+        private void btnCreateScript_Click(object sender, EventArgs e)
+        {
+            TemplateTextArea.Text = SqlHelper.CreateTable(Path.GetFileNameWithoutExtension(txtInputFile.Text), DataSourceHelper.FindByExtension(txtInputFile.Text).LoadFromFile(txtInputFile.Text));
+        }
     }
+
+
 }

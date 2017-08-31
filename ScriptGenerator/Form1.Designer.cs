@@ -31,7 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.label1 = new System.Windows.Forms.Label();
             this.btnGenerate = new System.Windows.Forms.Button();
-            this.txtCSVFileInput = new System.Windows.Forms.TextBox();
+            this.txtInputFile = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.btnBrowse = new System.Windows.Forms.Button();
             this.gvCSVPreview = new System.Windows.Forms.DataGridView();
@@ -45,6 +45,8 @@
             this.btnLoadTemplate = new System.Windows.Forms.Button();
             this.btnSaveTemplate = new System.Windows.Forms.Button();
             this.btnPreview = new System.Windows.Forms.Button();
+            this.btnCreateScript = new System.Windows.Forms.Button();
+            this.lblTemplateFilePath = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.gvCSVPreview)).BeginInit();
             this.TextPanel.SuspendLayout();
             this.PanelSearch.SuspendLayout();
@@ -69,12 +71,12 @@
             this.btnGenerate.UseVisualStyleBackColor = true;
             this.btnGenerate.Click += new System.EventHandler(this.btnGenerate_Click);
             // 
-            // txtCSVFileInput
+            // txtInputFile
             // 
-            this.txtCSVFileInput.Location = new System.Drawing.Point(117, 12);
-            this.txtCSVFileInput.Name = "txtCSVFileInput";
-            this.txtCSVFileInput.Size = new System.Drawing.Size(847, 20);
-            this.txtCSVFileInput.TabIndex = 2;
+            this.txtInputFile.Location = new System.Drawing.Point(117, 12);
+            this.txtInputFile.Name = "txtInputFile";
+            this.txtInputFile.Size = new System.Drawing.Size(847, 20);
+            this.txtInputFile.TabIndex = 2;
             // 
             // label2
             // 
@@ -224,11 +226,31 @@
             this.btnPreview.UseVisualStyleBackColor = true;
             this.btnPreview.Click += new System.EventHandler(this.btnPreview_Click);
             // 
+            // btnCreateScript
+            // 
+            this.btnCreateScript.Location = new System.Drawing.Point(775, 310);
+            this.btnCreateScript.Name = "btnCreateScript";
+            this.btnCreateScript.Size = new System.Drawing.Size(122, 23);
+            this.btnCreateScript.TabIndex = 14;
+            this.btnCreateScript.Text = "Create Script";
+            this.btnCreateScript.UseVisualStyleBackColor = true;
+            this.btnCreateScript.Click += new System.EventHandler(this.btnCreateScript_Click);
+            // 
+            // lblTemplateFilePath
+            // 
+            this.lblTemplateFilePath.AutoSize = true;
+            this.lblTemplateFilePath.Location = new System.Drawing.Point(92, 323);
+            this.lblTemplateFilePath.Name = "lblTemplateFilePath";
+            this.lblTemplateFilePath.Size = new System.Drawing.Size(0, 13);
+            this.lblTemplateFilePath.TabIndex = 15;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1071, 805);
+            this.Controls.Add(this.lblTemplateFilePath);
+            this.Controls.Add(this.btnCreateScript);
             this.Controls.Add(this.btnPreview);
             this.Controls.Add(this.btnSaveTemplate);
             this.Controls.Add(this.btnLoadTemplate);
@@ -237,7 +259,7 @@
             this.Controls.Add(this.gvCSVPreview);
             this.Controls.Add(this.btnBrowse);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.txtCSVFileInput);
+            this.Controls.Add(this.txtInputFile);
             this.Controls.Add(this.btnGenerate);
             this.Controls.Add(this.label1);
             this.Name = "Form1";
@@ -257,7 +279,7 @@
 
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button btnGenerate;
-        private System.Windows.Forms.TextBox txtCSVFileInput;
+        private System.Windows.Forms.TextBox txtInputFile;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button btnBrowse;
         private System.Windows.Forms.DataGridView gvCSVPreview;
@@ -271,5 +293,7 @@
         private System.Windows.Forms.Button btnLoadTemplate;
         private System.Windows.Forms.Button btnSaveTemplate;
         private System.Windows.Forms.Button btnPreview;
+        private System.Windows.Forms.Button btnCreateScript;
+        private System.Windows.Forms.Label lblTemplateFilePath;
     }
 }
