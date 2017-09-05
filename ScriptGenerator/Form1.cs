@@ -59,7 +59,7 @@ namespace ScriptGenerator
             if (PreValidate())
             {
                 btnGenerate.Text = "Generating";
-                var text = GenerateTemplate();
+                var text = GenerateTemplate(true);
                 btnGenerate.Text = "Generate";
                 var saveFileDialog1 = new SaveFileDialog
                 {
@@ -67,13 +67,10 @@ namespace ScriptGenerator
                     Title = "Save an SQL File"
                 };
                 saveFileDialog1.ShowDialog();
+                
+                File.WriteAllText(saveFileDialog1.FileName, text);
 
-                if (File.Exists(saveFileDialog1.FileName))
-                {
-                    File.WriteAllText(saveFileDialog1.FileName, text);
-
-                    MessageBox.Show("File has been saved to " + saveFileDialog1.FileName);
-                }
+                MessageBox.Show("File has been saved to " + saveFileDialog1.FileName);
             }
         }
 
@@ -420,7 +417,7 @@ namespace ScriptGenerator
 
             if (File.Exists(filePath))
             {
-                File.WriteAllText(Settings.Default.TemplateFilePath, filePath);
+                File.WriteAllText(filePath, TemplateTextArea.Text);
             }
         }
 
@@ -467,9 +464,9 @@ namespace ScriptGenerator
             return true;
         }
 
-        private string GenerateTemplate()
+        private string GenerateTemplate(bool all = false)
         {
-            var data = DataSourceHelper.FindByExtension(Path.GetExtension(txtInputFile.Text)).LoadFromFile(txtInputFile.Text);
+            var data = DataSourceHelper.FindByExtension(Path.GetExtension(txtInputFile.Text)).LoadFromFile(txtInputFile.Text, all ? int.MaxValue : 10);
 
             var st = new StringBuilder();
 
